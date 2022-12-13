@@ -122,6 +122,7 @@ export default class FitParser {
           laps.push(message);
           break;
         case 'set':
+          console.log("Found set in fit");
           if (isCascadeNeeded) {
             message.records = tempRecords;
             tempRecords = [];
