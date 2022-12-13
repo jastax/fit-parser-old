@@ -121,6 +121,16 @@ export default class FitParser {
           }
           laps.push(message);
           break;
+        case 'set':
+          if (isCascadeNeeded) {
+            message.records = tempRecords;
+            tempRecords = [];
+            tempLaps.push(message);
+            message.lengths = tempLengths;
+            tempLengths = [];
+          }
+          laps.push(message);
+          break;
         case 'session':
           if (isCascadeNeeded) {
             message.laps = tempLaps;
@@ -177,12 +187,12 @@ export default class FitParser {
           sports.push(message);
           break;
         case 'file_id':
-          if(message){
+          if (message) {
             file_ids.push(message);
           }
           break;
         case 'definition':
-          if(message){
+          if (message) {
             definitions.push(message);
           }
           break;

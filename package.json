@@ -15,7 +15,7 @@
   "devDependencies": {
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
-    "babel": "^6.3.26",
+    "babel": "^6.23.0",
     "babel-core": "^6.26.3",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
@@ -53,7 +53,6 @@
     }
   ],
   "name": "fit-file-parser",
-  "optionalDependencies": {},
   "private": false,
   "repository": {
     "type": "git",
@@ -67,6 +66,7 @@
   },
   "version": "1.8.4",
   "dependencies": {
+    "@babel/register": "^7.18.9",
     "buffer": "^5.1.0"
   }
 }

@@ -118,19 +118,29 @@ var FitParser = function () {
       var isCascadeNeeded = isModeCascade || this.options.mode === 'both';
 
       var startDate = void 0,
-          lastStopTimestamp = void 0;
+        lastStopTimestamp = void 0;
       var pausedTime = 0;
 
       while (loopIndex < crcStart) {
         var _readRecord = (0, _binary.readRecord)(blob, messageTypes, developerFields, loopIndex, this.options, startDate, pausedTime),
-            nextIndex = _readRecord.nextIndex,
-            messageType = _readRecord.messageType,
-            message = _readRecord.message;
+          nextIndex = _readRecord.nextIndex,
+          messageType = _readRecord.messageType,
+          message = _readRecord.message;
 
         loopIndex = nextIndex;
 
         switch (messageType) {
           case 'lap':
+            if (isCascadeNeeded) {
+              message.records = tempRecords;
+              tempRecords = [];
+              tempLaps.push(message);
+              message.lengths = tempLengths;
+              tempLengths = [];
+            }
+            laps.push(message);
+            break;
+          case 'set':
             if (isCascadeNeeded) {
               message.records = tempRecords;
               tempRecords = [];
