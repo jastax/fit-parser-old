@@ -249,9 +249,12 @@ var FitParser = function () {
 
 
         if (fitObj.activity.sessions.laps.length == 0) {
+          console.log("FIT PARSER: No Laps, push records!")
           let lap = {};
           lap.push({ records: tempRecords });
           fitObj.activity.sessions.laps.push(lap);
+        } else {
+          console.log("FIT PARSER:  " + fitObj.activity.sessions.laps.length + " laps found")
         }
       }
       if (!isModeCascade) {
