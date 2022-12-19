@@ -67,6 +67,7 @@
   "version": "1.8.4",
   "dependencies": {
     "@babel/register": "^7.18.9",
-    "buffer": "^5.1.0"
+    "buffer": "^5.1.0",
+    "fit-file-parser": "github:jastax/fit-parser#v0.0.1"
   }
 }

@@ -226,6 +226,12 @@ export default class FitParser {
       fitObj.activity.developer_data_ids = applications;
       fitObj.activity.field_descriptions = fieldDescriptions;
       fitObj.activity.sports = sports;
+
+      if (fitObj.activity.sessions.laps.length == 0) {
+        let lap = {};
+        lap.push({ records: tempRecords });
+        fitObj.activity.sessions.laps.push(lap);
+      }
     }
     if (!isModeCascade) {
       fitObj.sessions = sessions;
