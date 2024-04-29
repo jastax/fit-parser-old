@@ -1,5 +1,6 @@
-import { getArrayBuffer, calculateCRC, readRecord } from "./binary";
-import { mapDataIntoSession, mapDataIntoLap } from "./helper";
+const { getArrayBuffer, calculateCRC, readRecord } = require("./binary");
+const { mapDataIntoSession, mapDataIntoLap } = require("./helper");
+
 export default class FitParser {
   constructor(options = {}) {
     this.options = {
