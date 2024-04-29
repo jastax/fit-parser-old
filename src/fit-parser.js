@@ -1,14 +1,14 @@
-import { getArrayBuffer, calculateCRC, readRecord } from './binary';
-
+import { getArrayBuffer, calculateCRC, readRecord } from "./binary";
+import { mapDataIntoSession, mapDataIntoLap } from "./helper";
 export default class FitParser {
   constructor(options = {}) {
     this.options = {
       force: options.force != null ? options.force : true,
-      speedUnit: options.speedUnit || 'm/s',
-      lengthUnit: options.lengthUnit || 'm',
-      temperatureUnit: options.temperatureUnit || 'celsius',
+      speedUnit: options.speedUnit || "m/s",
+      lengthUnit: options.lengthUnit || "m",
+      temperatureUnit: options.temperatureUnit || "celsius",
       elapsedRecordField: options.elapsedRecordField || false,
-      mode: options.mode || 'list',
+      mode: options.mode || "list",
     };
   }
 
@@ -16,7 +16,7 @@ export default class FitParser {
     const blob = new Uint8Array(getArrayBuffer(content));
 
     if (blob.length < 12) {
-      callback('File to small to be a FIT file', {});
+      callback("File to small to be a FIT file", {});
       if (!this.options.force) {
         return;
       }
@@ -24,18 +24,18 @@ export default class FitParser {
 
     const headerLength = blob[0];
     if (headerLength !== 14 && headerLength !== 12) {
-      callback('Incorrect header size', {});
+      callback("Incorrect header size", {});
       if (!this.options.force) {
         return;
       }
     }
 
-    let fileTypeString = '';
+    let fileTypeString = "";
     for (let i = 8; i < 12; i++) {
       fileTypeString += String.fromCharCode(blob[i]);
     }
-    if (fileTypeString !== '.FIT') {
-      callback('Missing \'.FIT\' in header', {});
+    if (fileTypeString !== ".FIT") {
+      callback("Missing '.FIT' in header", {});
       if (!this.options.force) {
         return;
       }
@@ -72,8 +72,8 @@ export default class FitParser {
     fitObj.protocolVersion = protocolVersion;
     fitObj.profileVersion = profileVersion;
 
-    const sessions = [];
-    const laps = [];
+    let sessions = [];
+    let laps = [];
     const records = [];
     const events = [];
     const hrv = [];
@@ -90,127 +90,105 @@ export default class FitParser {
     const monitor_info = [];
     const lengths = [];
 
-    let tempLaps = [];
-    let tempLengths = [];
-    let tempRecords = [];
-
     let loopIndex = headerLength;
     const messageTypes = [];
     const developerFields = [];
 
-    const isModeCascade = this.options.mode === 'cascade';
-    const isCascadeNeeded = isModeCascade || this.options.mode === 'both';
+    const isModeCascade = this.options.mode === "cascade";
+    const isCascadeNeeded = isModeCascade || this.options.mode === "both";
 
-    let startDate, lastStopTimestamp;
+    let startDate;
+    let lastStopTimestamp;
     let pausedTime = 0;
 
     while (loopIndex < crcStart) {
-      const { nextIndex,
-        messageType,
-        message } = readRecord(blob, messageTypes, developerFields, loopIndex, this.options, startDate, pausedTime);
+      const { nextIndex, messageType, message } = readRecord(
+        blob,
+        messageTypes,
+        developerFields,
+        loopIndex,
+        this.options,
+        startDate,
+        pausedTime
+      );
       loopIndex = nextIndex;
 
       switch (messageType) {
-        case 'lap':
-          if (isCascadeNeeded) {
-            message.records = tempRecords;
-            tempRecords = [];
-            tempLaps.push(message);
-            message.lengths = tempLengths;
-            tempLengths = [];
-          }
+        case "lap":
           laps.push(message);
           break;
-        case 'set':
-          console.log("Found set in fit");
-          if (isCascadeNeeded) {
-            message.records = tempRecords;
-            tempRecords = [];
-            tempLaps.push(message);
-            message.lengths = tempLengths;
-            tempLengths = [];
-          }
+        case "set":
           laps.push(message);
           break;
-        case 'session':
-          if (isCascadeNeeded) {
-            message.laps = tempLaps;
-            tempLaps = [];
-          }
+        case "session":
           sessions.push(message);
           break;
-        case 'event':
-          if (message.event === 'timer') {
-            if (message.event_type === 'stop_all') {
+        case "event":
+          if (message.event === "timer") {
+            if (message.event_type === "stop_all") {
               lastStopTimestamp = message.timestamp;
-            } else if (message.event_type === 'start' && lastStopTimestamp) {
+            } else if (message.event_type === "start" && lastStopTimestamp) {
               pausedTime += (message.timestamp - lastStopTimestamp) / 1000;
             }
           }
           events.push(message);
           break;
-        case 'length':
-          if (isCascadeNeeded) {
-            tempLengths.push(message);
-          }
+        case "length":
           lengths.push(message);
           break;
-        case 'hrv':
+        case "hrv":
           hrv.push(message);
           break;
-        case 'record':
+        case "record":
           if (!startDate) {
             startDate = message.timestamp;
             message.elapsed_time = 0;
             message.timer_time = 0;
           }
           records.push(message);
-          if (isCascadeNeeded) {
-            tempRecords.push(message);
-          }
           break;
-        case 'field_description':
+        case "field_description":
           fieldDescriptions.push(message);
           break;
-        case 'device_info':
+        case "device_info":
           devices.push(message);
           break;
-        case 'developer_data_id':
+        case "developer_data_id":
           applications.push(message);
           break;
-        case 'dive_gas':
+        case "dive_gas":
           dive_gases.push(message);
           break;
-        case 'course_point':
+        case "course_point":
           course_points.push(message);
           break;
-        case 'sport':
+        case "sport":
           sports.push(message);
           break;
-        case 'file_id':
+        case "file_id":
           if (message) {
             file_ids.push(message);
           }
           break;
-        case 'definition':
+        case "definition":
           if (message) {
             definitions.push(message);
           }
           break;
-        case 'monitoring':
+        case "monitoring":
           monitors.push(message);
           break;
-        case 'monitoring_info':
+        case "monitoring_info":
           monitor_info.push(message);
           break;
-        case 'stress_level':
+        case "stress_level":
           stress.push(message);
           break;
-        case 'software':
+        case "software":
           fitObj.software = message;
           break;
         default:
-          if (messageType !== '') {
+          if (messageType !== "") {
             fitObj[messageType] = message;
           }
           break;
@@ -219,6 +197,9 @@ export default class FitParser {
 
     if (isCascadeNeeded) {
       fitObj.activity = fitObj.activity || {};
+      laps = mapDataIntoLap(laps, "records", records);
+      laps = mapDataIntoLap(laps, "lengths", lengths);
+      sessions = mapDataIntoSession(sessions, laps);
       fitObj.activity.sessions = sessions;
       fitObj.activity.events = events;
       fitObj.activity.hrv = hrv;
@@ -226,24 +207,6 @@ export default class FitParser {
       fitObj.activity.developer_data_ids = applications;
       fitObj.activity.field_descriptions = fieldDescriptions;
       fitObj.activity.sports = sports;
-
-      try {
-        if (fitObj.activity.sessions[0] && fitObj.activity.sessions[0].laps) {
-          if (fitObj.activity.sessions[0].laps.length == 0) {
-            console.log("FIT PARSER: No Laps, push records!")
-            let lap = { records: tempRecords };
-            fitObj.activity.sessions[0].laps.push(lap);
-
-          } else {
-            console.log("FIT PARSER:  " + fitObj.activity.sessions[0].laps.length + " laps found")
-          }
-        } else {
-          console.log("Parser missed laps")
-        }
-      }
-      catch (err) {
-        console.log("err bei lap pushing " + err)
-      }
     }
     if (!isModeCascade) {
       fitObj.sessions = sessions;
