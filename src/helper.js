@@ -1,4 +1,13 @@
 export const mapDataIntoLap = (inputLaps, lapKey, data) => {
+  if (!inputLaps || !inputLaps.length) {
+    // Create a single lap containing all data if no laps exist
+    const defaultLap = {
+      start_time: data[0]?.timestamp
+    };
+    defaultLap[lapKey] = data;
+    return [defaultLap];
+  }
+
   const laps = [...inputLaps];
   let index = 0;
   for (let i = 0; i < laps.length; i++) {

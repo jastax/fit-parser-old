@@ -1,6 +1,5 @@
-const { getArrayBuffer, calculateCRC, readRecord } = require("./binary");
-const { mapDataIntoSession, mapDataIntoLap } = require("./helper");
-
+import { getArrayBuffer, calculateCRC, readRecord } from './binary';
+import { mapDataIntoSession, mapDataIntoLap } from './helper';
 export default class FitParser {
   constructor(options = {}) {
     this.options = {
@@ -9,7 +8,8 @@ export default class FitParser {
       lengthUnit: options.lengthUnit || "m",
       temperatureUnit: options.temperatureUnit || "celsius",
       elapsedRecordField: options.elapsedRecordField || false,
-      mode: options.mode || "list",
+      pressureUnit: options.pressureUnit || 'bar',
+      mode: options.mode || 'list',
     };
   }
 
@@ -90,6 +90,8 @@ export default class FitParser {
     const file_ids = [];
     const monitor_info = [];
     const lengths = [];
+    const tank_updates = [];
+    const tank_summaries = [];
 
     let loopIndex = headerLength;
     const messageTypes = [];
@@ -115,13 +117,13 @@ export default class FitParser {
       loopIndex = nextIndex;
 
       switch (messageType) {
-        case "lap":
+        case 'lap':
           laps.push(message);
           break;
         case "set":
           laps.push(message);
           break;
-        case "session":
+        case 'session':
           sessions.push(message);
           break;
         case "event":
@@ -134,7 +136,7 @@ export default class FitParser {
           }
           events.push(message);
           break;
-        case "length":
+        case 'length':
           lengths.push(message);
           break;
         case "hrv":
@@ -166,12 +168,12 @@ export default class FitParser {
         case "sport":
           sports.push(message);
           break;
-        case "file_id":
+        case 'file_id':
           if (message) {
             file_ids.push(message);
           }
           break;
-        case "definition":
+        case 'definition':
           if (message) {
             definitions.push(message);
           }
@@ -188,6 +190,12 @@ export default class FitParser {
         case "software":
           fitObj.software = message;
           break;
+        case 'tank_update':
+          tank_updates.push(message);
+          break;
+        case 'tank_summary':
+          tank_summaries.push(message);
+          break;
         default:
           if (messageType !== "") {
             fitObj[messageType] = message;
@@ -198,8 +206,8 @@ export default class FitParser {
 
     if (isCascadeNeeded) {
       fitObj.activity = fitObj.activity || {};
-      laps = mapDataIntoLap(laps, "records", records);
-      laps = mapDataIntoLap(laps, "lengths", lengths);
+      laps = mapDataIntoLap(laps, 'records', records);
+      laps = mapDataIntoLap(laps, 'lengths', lengths);
       sessions = mapDataIntoSession(sessions, laps);
       fitObj.activity.sessions = sessions;
       fitObj.activity.events = events;
@@ -228,6 +236,8 @@ export default class FitParser {
       fitObj.file_ids = file_ids;
       fitObj.monitor_info = monitor_info;
       fitObj.definitions = definitions;
+      fitObj.tank_updates = tank_updates;
+      fitObj.tank_summaries = tank_summaries;
     }
 
     callback(null, fitObj);
