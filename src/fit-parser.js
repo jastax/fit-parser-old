@@ -12,7 +12,7 @@ export default class FitParser {
       mode: options.mode || 'list',
     };
   }
-
+  
   parse(content, callback) {
     const blob = new Uint8Array(getArrayBuffer(content));
 

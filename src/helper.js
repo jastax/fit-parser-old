@@ -7,7 +7,7 @@ export const mapDataIntoLap = (inputLaps, lapKey, data) => {
     defaultLap[lapKey] = data;
     return [defaultLap];
   }
-
+  
   const laps = [...inputLaps];
   let index = 0;
   for (let i = 0; i < laps.length; i++) {
